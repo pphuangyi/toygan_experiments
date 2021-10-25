@@ -9,13 +9,15 @@ ROOT_OUTDIR = '/home/yhuang2/PROJs/LS4GAN/toygan_outdir/'
 N_GPU = 1
 BATCH_SIZE = 128 * N_GPU
 patch_size = 16 # image patch random masking patch size
-conv_norm = None
+conv_norm = 'instance'
+data_size = '50k'
+data_folder = f'/home/yhuang2/data/LS4GAN/toyzero-128-{data_size}-precropped/'
 
 args_dict = {
     'batch_size' : BATCH_SIZE,
     'data' : 'toyzero-precropped',
     'data_args'   : {
-        'path'        : '/home/dtorbunov/shared/test_1_n100-U-128x128/',
+        'path'        : data_folder,
         'align_train' : True,
         'align_val'   : True,
         'seed'        : 0,

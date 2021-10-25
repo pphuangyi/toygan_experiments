@@ -9,12 +9,15 @@ ROOT_OUTDIR = '/home/yhuang2/PROJs/LS4GAN/toygan_outdir/'
 N_GPU = 1
 BATCH_SIZE = 128 * N_GPU
 patch_size = 8 # image patch random masking patch size
+conv_norm = None
+data_size = '50k'
+data_folder = f'/home/yhuang2/data/LS4GAN/toyzero-128-{data_size}-precropped/'
 
 args_dict = {
     'batch_size' : BATCH_SIZE,
     'data' : 'toyzero-precropped',
     'data_args'   : {
-        'path'        : '/home/dtorbunov/shared/test_1_n100-U-128x128/',
+        'path'        : data_folder,
         'align_train' : True,
         'align_val'   : True,
         'seed'        : 0,
@@ -33,8 +36,8 @@ args_dict = {
             'embed_features' : 384,
             'activ'          : 'gelu',
             'norm'           : 'layer',
-            'conv_norm'      : None,
-            'token_size'     : (8, 8),
+            'conv_norm'      : conv_norm,
+            'token_size'     : (patch_size, patch_size),
             'rescale'        : False,
             'rezero'         : True,
         },
@@ -72,7 +75,7 @@ args_dict = {
     'gradient_penalty' : None,
     'steps_per_epoch'  : None,
 # args
-    'label'  : f'bert-{patch_size}x{patch_size}',
+    'label'  : f'bert-{patch_size}x{patch_size}_{conv_norm}',
     'outdir' : os.path.join(
         ROOT_OUTDIR,
         'toy-adc', 'vit', 'pretrain', 'vitconvdeconv'
