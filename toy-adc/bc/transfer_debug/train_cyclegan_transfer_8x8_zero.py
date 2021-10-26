@@ -70,7 +70,6 @@ args_dict = {
     'steps_per_epoch'  : 2000,
 # transfer args
     'transfer' : {
-        # 'base_model' : 'experiments/toyzero-128-vit-bert/model_d(toyzero-presimple)_md(None)_mg(vit-v0)_1e9ac577439c7e0aefd0de968137f991',
         'base_model': base_model,
         'transfer_map'  : {
             'gen_ab' : 'encoder',
@@ -80,7 +79,7 @@ args_dict = {
         'allow_partial' : False,
     },
 # args
-    'label'  : None,
+    'label'  : zero,
     'outdir' : os.path.join(
         ROOT_OUTDIR,
 	'toy-adc', 'bc', 'transfer', 'bc-cyclegan-transfer-8x8'
