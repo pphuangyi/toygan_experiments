@@ -1,9 +1,15 @@
 import os
-from cyclegan import ROOT_OUTDIR, train, train_val, join_dicts
+import sys
+sys.path.append('/home/yhuang2/PROJs/LS4GAN')
+
+from toygan_convdeconv.cyclegan import train
 
 ROOT_OUTDIR = '/home/yhuang2/PROJs/LS4GAN/toygan_outdir/'
 
-BATCH_SIZE = 128
+BATCH_SIZE = 64
+
+base_model = sys.argv[1]
+
 data_size = '50k'
 data_folder = f'/data/datasets/LS4GAN/toyzero-128-{data_size}-precropped/'
 
@@ -16,17 +22,21 @@ args_dict = {
         'align_val'   : True,
         'seed'        : 0,
     },
-    # 'data' : 'toyzero-presimple',
-    # 'data_args'   : {
-    #     # 'path'     : 'toyzero-1k',
-    #     'path'     : '/home/yhuang2/data/LS4GAN/toy-adc/',
-    #     'fname'    : 'test_1_n100-U-128x128.csv',
-    #     'shuffle'  : False,
-    #     'val_size' : 1000,
-    # },
-    # 'image_shape' : (1, 128, 128),
-    'epochs'      : 1000,
-    'discriminator' : { 'model' : None, },
+    'image_shape' : (1, 128, 128),
+    'epochs'      : 300,
+    'discriminator' : {
+        'model' : 'basic',
+        'model_args' : None,
+        'optimizer'  : {
+            'name'  : 'Adam',
+            'lr'    : 1e-4 * BATCH_SIZE / 32,
+            'betas' : (0, 0.99),
+        },
+        'weight_init' : {
+            'name'      : 'normal',
+            'init_gain' : 0.02,
+        },
+    },
     'generator' : {
         'model' : 'vitconvdeconv',
         'model_args' : {
@@ -57,33 +67,42 @@ args_dict = {
             'init_gain' : 0.02,
         },
     },
-    'model'      : 'autoencoder',
+    'model' : 'cyclegan',
     'model_args' : {
-        'joint' : True,
-        'background_penalty' : {
-            'epochs_warmup' : 100,
-            'epochs_anneal' : 400,
-        },
+        'lambda_a'   : 1.0, # useing a much smaller coefficient cycle loss
+        'lambda_b'   : 1.0, # useing a much smaller coefficient cycle loss
+        'lambda_idt' : 0.5,
+        'pool_size'  : 50,
     },
     'scheduler' : {
-        'name'      : 'cosine',
-        'T_max'     : 100,
-        'eta_min'   : BATCH_SIZE * 5e-7 / 512,
+        'name'          : 'linear',
+        'epochs_warmup' : 100,
+        'epochs_anneal' : 200,
     },
-    'loss'             : 'l2',
-    'gradient_penalty' : None,
-    'steps_per_epoch'  : None,
+    'loss'             : 'wgan',
+    'gradient_penalty' : { 'lambda_gp' : 1 },
+    'steps_per_epoch'  : 32 * 1024 // BATCH_SIZE,
+# transfer args
+    'transfer' : {
+        'base_model': base_model,
+        'transfer_map'  : {
+            'gen_ab' : 'encoder',
+            'gen_ba' : 'encoder',
+        },
+        'strict'        : True,
+        'allow_partial' : False,
+    },
 # args
-    'label'  : 'rewind',
+    'label'  : None,
     'outdir' : os.path.join(
         ROOT_OUTDIR,
         'toy-adc',
         'vit',
-        'pretrain_convdeconv'
+        'transfer_convdeconv',
+        'vit-cyclegan-transfer-convdeconv'
     ),
     'log_level'  : 'DEBUG',
-    'checkpoint' : 5,
+    'checkpoint' : 10,
 }
 
-train_val(args_dict)
-
+train(args_dict)
