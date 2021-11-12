@@ -14,17 +14,29 @@ data_size = '50k'
 data_folder = f'/data/datasets/LS4GAN/toyzero-128-{data_size}-precropped/'
 
 args_dict = {
-    'batch_size' : BATCH_SIZE,
+    'batch_size'  : BATCH_SIZE,
     'data' : 'toyzero-precropped',
     'data_args'   : {
-        'path'        : data_folder,
-        'align_train' : True,
+        'path'     : data_folder,
+        'align_train' : False,
         'align_val'   : True,
         'seed'        : 0,
     },
     'image_shape' : (1, 128, 128),
-    'epochs'      : 1000,
-    'discriminator' : None,
+    'epochs'      : 500,
+    'discriminator' : {
+        'model' : 'basic',
+        'model_args' : None,
+        'optimizer'  : {
+            'name'  : 'Adam',
+            'lr'    : 1e-4 * BATCH_SIZE / 32,
+            'betas' : (0, 0.99),
+        },
+        'weight_init' : {
+            'name'      : 'normal',
+            'init_gain' : 0.02,
+        },
+    },
     'generator' : {
         'model' : 'vitconvdeconv',
         'model_args' : {
@@ -52,37 +64,43 @@ args_dict = {
             'init_gain' : 0.02,
         },
     },
-    'model'      : 'autoencoder',
     'model_args' : {
-        'joint' : True,
-        'background_penalty' : {
-            'epochs_warmup' : 25,
-            'epochs_anneal' : 75,
-        },
-        'masking' : {
-            'name'       : 'image-patch-random',
-            'patch_size' : (patch_size, patch_size),
-            'fraction'   : 0.4
-        },
+        'lambda_a'   : 1.0,
+        'lambda_b'   : 1.0,
+        'lambda_idt' : 0.5,
+        'pool_size'  : 50,
     },
     'scheduler' : {
-        'name'      : 'CosineAnnealingWarmRestarts',
-        'T_0'       : 100,
-        'T_mult'    : 1,
-        'eta_min'   : BATCH_SIZE * 5e-9 / 512,
+        'name'          : 'linear',
+        'epochs_warmup' : 100,
+        'epochs_anneal' : 200,
     },
-    'loss'             : 'l2',
-    'gradient_penalty' : None,
-    'steps_per_epoch'  : None,
+    'loss'             : 'wgan',
+    'gradient_penalty' : { 'lambda_gp' : 1 },
+    'steps_per_epoch'  : 32 * 1024 // BATCH_SIZE,
+    'transfer' : {
+        'base_model' : (
+            f'{ROOT_OUTDIR}/toy-adc/vit/pretrain/'
+            'model_d(toyzero-precropped)_md(None)_mg(vitconvdeconv)'
+            f'_bert-{patch_size}x{patch_size}_{conv_norm}'
+        ),
+        'transfer_map'  : {
+            'gen_ab' : 'encoder',
+            'gen_ba' : 'encoder',
+        },
+        'strict'        : True,
+        'allow_partial' : False,
+    },
 # args
-    'label'  : f'bert-{patch_size}x{patch_size}_{conv_norm}',
-    'outdir' : os.path.join(
+    'label'      : f'cyclegan-{patch_size}x{patch_size}_{conv_norm}',
+    'outdir'     : os.path.join(
         ROOT_OUTDIR,
-        'toy-adc', 'vit', 'pretrain'
+        'toy-adc',
+        'vit',
+        'transfer'
     ),
     'log_level'  : 'DEBUG',
-    'checkpoint' : 5,
+    'checkpoint' : 10,
 }
 
 train_val(args_dict)
-

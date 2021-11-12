@@ -11,7 +11,7 @@ BATCH_SIZE = 128 * N_GPU
 patch_size = 8 # image patch random masking patch size
 conv_norm = None
 data_size = '50k'
-data_folder = f'/home/yhuang2/data/LS4GAN/toyzero-128-{data_size}-precropped/'
+data_folder = f'/data/datasets/LS4GAN/toyzero-128-{data_size}-precropped/'
 
 args_dict = {
     'batch_size' : BATCH_SIZE,
@@ -23,7 +23,7 @@ args_dict = {
         'seed'        : 0,
     },
     'image_shape' : (1, 128, 128),
-    'epochs'      : 500,
+    'epochs'      : 1000,
     'discriminator' : None,
     'generator' : {
         'model' : 'vitconvdeconv',
@@ -78,7 +78,7 @@ args_dict = {
     'label'  : f'bert-{patch_size}x{patch_size}_{conv_norm}',
     'outdir' : os.path.join(
         ROOT_OUTDIR,
-        'toy-adc', 'vit', 'pretrain', 'vitconvdeconv'
+        'toy-adc', 'vit', 'pretrain'
     ),
     'log_level'  : 'DEBUG',
     'checkpoint' : 5,
